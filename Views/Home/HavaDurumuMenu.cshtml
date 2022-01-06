@@ -1,0 +1,88 @@
+﻿@model List<WebApiDeneme14.ModelsGenerated.Bolgeler>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<html>
+<head>
+    <title>Hava Durumu da</title>
+</head>
+<body>
+    <div class="container text-lg-center " >
+        <form>
+            <select class="form-select col-lg-4" aria-label="Default select example" id="BolgeListesi">
+                <option>Bir Bölge Seçiniz</option>
+                @foreach (var item in Model)
+                {
+                    <option value="@item.Id">@Html.DisplayFor(modelItem => item.Isim)</option>
+
+                }
+
+            </select>
+            <select class="form-select col-lg-4" aria-label="Default select example" id="SehirListesi">
+                <option>Bir Şehir Seçiniz</option>
+            </select>
+        </form>
+
+        <div class="card" style="width: 18rem; margin-top: 2rem;">
+            <img src="http://openweathermap.org/img/wn/13d@2x.png" class="card-img-top" alt="..." id="HavaDurumuIcon" >
+            <div class="card-body" >
+                <h3 class="card-title text-center" id="SehirAdi">Şehir Adı</h3>
+                <p class="card-text" id="SehirSicaklik">Hava Derecesi</p>
+                <p class="card-text" id="SehirHissedilenSicaklik">Hissedilen Sıcaklık</p>
+                <p class="card-text" id="SehirSicaklikAciklama">Tipi</p>
+                <p class="card-text" id="SehirNem">Nem Oranı</p>
+                <p class="card-text"><small class="text-muted">Last updated 3 mins ago</small></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+@section Scripts{
+    <script type="text/javascript">
+    $(document).ready(function () {
+        $("#BolgeListesi").change(function () {
+            $("#SehirListesi").empty();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("SehirGetir")',
+                dataType: 'json',
+                data: { id: $("#BolgeListesi").val() },
+
+                success: function (sehirlers) {
+                    $("#SehirListesi").append('<option value"' + (-1) + '">'
+                        + "Sehir Seciniz" + '</option>');
+                    $.each(sehirlers, function (i, sehir) {
+                        $("#SehirListesi").append($('<option/>').val(sehir.value).text(sehir.text));
+                    });
+                }
+            });
+
+        });
+
+        $("#SehirListesi").change(function () {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("SehirHavaDurumuGetir")',
+                dataType: 'json',
+                data: {
+                    id: $("#SehirListesi").val()
+                },
+
+                success: function (sehirHavaBilgisi) {
+                    $("#SehirAdi").text(sehirHavaBilgisi.city);
+                    $("#SehirSicaklik").text(sehirHavaBilgisi.temp);
+                    $("#SehirHissedilenSicaklik").text(sehirHavaBilgisi.feelsLike);
+                    $("#SehirSicaklikAciklama").text(sehirHavaBilgisi.summary);
+                    $("#SehirNem").text(sehirHavaBilgisi.humidity);
+                    var iconcode = sehirHavaBilgisi.icon;
+                    var iconurl = "http://openweathermap.org/img/wn/" + iconcode + "@@2x.png";
+                    $("#HavaDurumuIcon").attr('src', iconurl);
+                }
+            });
+        });
+
+    });
+    </script>
+}
